@@ -1,0 +1,5 @@
+env_variables:
+  GCP_DB_HOST: "35.188.8.169"
+  GCP_DB_USER: "root"
+  GCP_DB_PASSWORD: ""
+  GCP_DB_NAME: "ticket_masterer"

@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ticket Masterer</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.27.2/axios.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>Ticket Masterer</h1>
+        <!-- Navigation Tabs -->
+        <ul class="nav nav-tabs mb-3" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab" aria-controls="users" aria-selected="true">Users</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tickets-tab" data-bs-toggle="tab" data-bs-target="#tickets" type="button" role="tab" aria-controls="tickets" aria-selected="false">Tickets</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="events-tab" data-bs-toggle="tab" data-bs-target="#events" type="button" role="tab" aria-controls="events" aria-selected="false">Events</button>
+            </li>
+        </ul>
+        
+        <div class="tab-content" id="myTabContent">
+            <!-- Users Tab -->
+            <div class="tab-pane fade show active" id="users" role="tabpanel" aria-labelledby="users-tab">
+                <!-- Form to Add a Record -->
+                <form id="createUserForm" class="mb-3">
+                    <input type="text" id="username" placeholder="Username" class="form-control mb-2" required>
+                    <input type="text" id="name" placeholder="Name" class="form-control mb-2" required>
+                    <input type="password" id="password" placeholder="Password" class="form-control mb-2" required>
+                    <select id="is_admin" class="form-control mb-2">
+                        <option value="0">User</option>
+                        <option value="1">Admin</option>
+                    </select>
+                    <button type="submit" class="btn btn-primary">Add User</button>
+                </form>
+
+                <h2>Users</h2>
+                <ul id="usersList" class="list-group"></ul>
+
+                <!-- Update Users Modal -->
+                <div class="modal fade" id="userUpdateModal" tabindex="-1" aria-labelledby="updateModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="updateModalLabel">Update User</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="updateUserForm">
+                                    <input type="hidden" id="updateUsernameOld">
+                                    <div class="mb-3">
+                                        <label for="updateUsernameNew" class="form-label">Username</label>
+                                        <input type="text" id="updateUsernameNew" class="form-control" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="updateName" class="form-label">Name</label>
+                                        <input type="text" id="updateName" class="form-control" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="updatePassword" class="form-label">Password</label>
+                                        <input type="password" id="updatePassword" class="form-control">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="updateis_admin" class="form-label">Type</label>
+                                        <select id="updateis_admin" class="form-control">
+                                            <option value="0">User</option>
+                                            <option value="1">Admin</option>
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Update User</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+            <!-- Tickets Tab -->
+            <div class="tab-pane fade" id="tickets" role="tabpanel" aria-labelledby="tickets-tab">
+                <form id="createTicketForm" class="mb-3">
+                    <input type="text" id="createTicketID" placeholder="Ticket ID" class="form-control mb-2" required>
+                    <input type="text" id="createEventTitle" placeholder="Event Title" class="form-control mb-2" required>
+                    <input type="number" id="createTicketPrice" placeholder="Ticket Price" step="01" class="form-control mb-2" required>
+                    <input type="number" id="createFee" placeholder="Fee" step="1" class="form-control mb-2" required>
+                    <input type="number" id="createTotalPrice" placeholder="Total Price" step="1" class="form-control mb-2" required>
+                    <input type="text" id="createFullSection" placeholder="Full Section" class="form-control mb-2" required>
+                    <input type="text" id="createSection" placeholder="Section" class="form-control mb-2" required>
+                    <input type="text" id="createRowNum" placeholder="Row Num" class="form-control mb-2" required>
+                    <input type="number" id="createQuantity" placeholder="Quantity" class="form-control mb-2" required>
+                    <button type="submit" class="btn btn-primary">Add Ticket</button>
+                </form>
+
+                <h2>Tickets</h2>
+                <ul id="ticketsList" class="list-group"></ul>
+
+                <!-- Update Tickets Modal -->
+                <div class="modal fade" id="ticketUpdateModal" tabindex="-1" aria-labelledby="updateModalTicketsLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="updateModalTicketsLabel">Update Ticket</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="updateTicketForm">
+                                    <input type="hidden" id="updateTicketID">
+                                    <div class="mb-3">
+                                        <label for="updateEventTitle" class="form-label">Event Title</label>
+                                        <input type="text" id="updateEventTitle" class="form-control" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="updateTicketPrice" class="form-label">Ticket Price</label>
+                                        <input type="number" id="updateTicketPrice" class="form-control" step="0.01" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="updateFee" class="form-label">Fee</label>
+                                        <input type="number" id="updateFee" class="form-control" step="0.01" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="updateTotalPrice" class="form-label">Total Price</label>
+                                        <input type="number" id="updateTotalPrice" class="form-control" step="0.01" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="updateQuantity" class="form-label">Quantity</label>
+                                        <input type="number" id="updateQuantity" class="form-control" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="updateFullSection" class="form-label">Full Section</label>
+                                        <input type="text" id="updateFullSection" class="form-control">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="updateSection" class="form-label">Section</label>
+                                        <input type="text" id="updateSection" class="form-control">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="updateRowNum" class="form-label">Row Number</label>
+                                        <input type="text" id="updateRowNum" class="form-control">
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Update Ticket</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+
+            <!-- Events Tab -->
+            <div class="tab-pane fade" id="events" role="tabpanel" aria-labelledby="events-tab">
+                <form id="createEventForm" class="mb-3">
+                    <input type="text" id="event_title" placeholder="Event Title" class="form-control mb-2" required>
+                    <input type="text" id="event_url" placeholder="Event url" class="form-control mb-2" required>
+                    <input type="datetime-local" id="datetime_local" placeholder="Datetime" class="form-control mb-2" required>
+                    <input type="text" id="location_name" placeholder="Location" class="form-control mb-2" required>
+                    <input type="text" id="promoter_name" placeholder="Promoter" class="form-control mb-2" required>
+                    <button type="submit" class="btn btn-primary">Add Event</button>
+                </form>
+
+                <h2>Events</h2>
+                <ul id="eventsList" class="list-group"></ul>
+                
+                <!-- Update Events Modal -->
+                <div class="modal fade" id="eventUpdateModal" tabindex="-1" aria-labelledby="eventUpdateModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="eventUpdateModalLabel">Update Event</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="updateEventForm">
+                                    <input type="hidden" id="updateEventTitleOld">
+                                    <div class="mb-3">
+                                        <label for="updateEventTitleNew" class="form-label">Event Title</label>
+                                        <input type="text" id="updateEventTitleNew" class="form-control" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="updateEventURL" class="form-label">Event URL</label>
+                                        <input type="url" id="updateEventURL" class="form-control" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="updateDatetimeLocal" class="form-label">Date & Time</label>
+                                        <input type="datetime-local" id="updateDatetimeLocal" class="form-control" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="updateLocationName" class="form-label">Location Name</label>
+                                        <input type="text" id="updateLocationName" class="form-control" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="updatePromoterName" class="form-label">Promoter Name</label>
+                                        <input type="text" id="updatePromoterName" class="form-control">
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Update Event</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    <script>
+        // Fetch Users
+        async function fetchUsers() {
+            const response = await axios.get('/users/records');
+            const usersList = document.getElementById('usersList');
+            usersList.innerHTML = '';
+            response.data.forEach(record => {
+                const li = document.createElement('li');
+                li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                li.innerHTML = `
+                    ${record.username} - ${record.name} (Admin: ${record.is_admin ? 'Yes' : 'No'})
+                    <div>
+                        <button class="btn btn-sm btn-warning" onclick="showUserUpdateModal('${record.username}', '${record.name}', '${record.is_admin}')">Edit</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteUser('${record.username}')">Delete</button>
+                    </div>`;
+                usersList.appendChild(li);
+            });
+        }
+        // Fetch Tickets
+        async function fetchTickets() {
+            const response = await axios.get('/tickets/records');
+            const ticketsList = document.getElementById('ticketsList');
+            ticketsList.innerHTML = '';
+            response.data.forEach(record => {
+                const li = document.createElement('li');
+                li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                li.innerHTML = `
+                    ${record.ticket_id} - ${record.event_title}
+                    <div>
+                        <button class="btn btn-sm btn-warning" onclick="showTicketsUpdateModal('${record.ticket_id}', '${record.event_title}', '${record.ticket_price}', '${record.fee}', '${record.total_price}', '${record.quantity}', '${record.full_section}', '${record.section}', '${record.row_num}')">Edit</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteTicket('${record.ticket_id}')">Delete</button>
+                    </div>`;
+                    ticketsList.appendChild(li);
+            });
+        }
+        // Fetch Events
+        async function fetchEvents() {
+            const response = await axios.get('/events/records');
+            const eventsList = document.getElementById('eventsList');
+            eventsList.innerHTML = '';
+            response.data.forEach(record => {
+                const li = document.createElement('li');
+                li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                li.innerHTML = `
+                    ${record.event_title}
+                    <div>
+                        <button class="btn btn-sm btn-warning" onclick="showEventsUpdateModal('${record.event_title}', '${record.event_url}', '${record.datetime_local}', '${record.location_name}', '${record.promoter_name}')">Edit</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteEvent('${record.event_title}')">Delete</button>
+                    </div>`;
+                eventsList.appendChild(li);
+            });
+        }
+
+        // Create User
+        document.getElementById('createUserForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const name = document.getElementById('name').value;
+            const password = document.getElementById('password').value;
+            const is_admin = document.getElementById('is_admin').value;
+            await axios.post('/users/create', { username, name, password, is_admin: parseInt(is_admin) });
+            document.getElementById('createUserForm').reset();
+            fetchUsers();
+        });
+        // Create Ticket
+        document.getElementById('createTicketForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            // ticket_id, event_title, ticket_price, fee, total_price, quantity, full_section, section, row
+            const ticket_id = document.getElementById('createTicketID').value;
+            const event_title = document.getElementById('createEventTitle').value;
+            const ticket_price = document.getElementById('createTicketPrice').value;
+            const fee = document.getElementById('createFee').value;
+            const total_price = document.getElementById('createTotalPrice').value;
+            const quantity = document.getElementById('createQuantity').value;
+            const full_section = document.getElementById('createFullSection').value;
+            const section = document.getElementById('createSection').value;
+            const row_num = document.getElementById('createRowNum').value;
+            const data = { ticket_id, event_title, ticket_price, fee, total_price, quantity, full_section, section, row_num };
+            await axios.post('/tickets/create', data);
+            document.getElementById('createTicketForm').reset();
+            fetchUsers();
+        });
+        // Create Event
+        document.getElementById('createEventForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            // event_title, event_url, datetime_local, location_name, promoter_name
+            const event_title = document.getElementById('event_title').value;
+            const event_url = document.getElementById('event_url').value;
+            const datetime_local = document.getElementById('datetime_local').value;
+            const location_name = document.getElementById('location_name').value;
+            const promoter_name = document.getElementById('promoter_name').value;
+            const data = { event_title, event_url, datetime_local, location_name, promoter_name };
+            await axios.post('/events/create', data);
+            document.getElementById('createEventForm').reset();
+            fetchEvents();
+        });
+
+        // Show update modal with pre-filled data
+        function showUserUpdateModal(username, name, is_admin) {
+            const modal = new bootstrap.Modal(document.getElementById('userUpdateModal'));
+            document.getElementById('updateUsernameOld').value = username;
+            document.getElementById('updateUsernameNew').value = username;
+            document.getElementById('updateName').value = name;
+            document.getElementById('updateis_admin').value = is_admin;
+            modal.show();
+        }
+        // Show update modal with pre-filled data
+        function showTicketsUpdateModal(ticket_id, event_title, ticket_price, fee, total_price, quantity, full_section, section, row_num) {
+            const modal = new bootstrap.Modal(document.getElementById('ticketUpdateModal'));
+            document.getElementById('updateTicketID').value = ticket_id;
+            document.getElementById('updateEventTitle').value = event_title;
+            document.getElementById('updateTicketPrice').value = ticket_price;
+            document.getElementById('updateFee').value = fee;
+            document.getElementById('updateTotalPrice').value = total_price;
+            document.getElementById('updateQuantity').value = quantity;
+            document.getElementById('updateFullSection').value = full_section;
+            document.getElementById('updateSection').value = section;
+            document.getElementById('updateRowNum').value = row_num;
+            modal.show();
+        }
+        // Show update modal with pre-filled data
+        function showEventsUpdateModal(event_title, event_url, datetime_local, location_name, promoter_name) {
+            const modal = new bootstrap.Modal(document.getElementById('eventUpdateModal'));
+            document.getElementById('updateEventTitleOld').value = event_title;
+            document.getElementById('updateEventTitleNew').value = event_title;
+            document.getElementById('updateEventURL').value = event_url;
+            document.getElementById('updateDatetimeLocal').value = datetime_local;
+            document.getElementById('updateLocationName').value = location_name;
+            document.getElementById('updatePromoterName').value = promoter_name;
+            modal.show();
+        }
+
+        // Update User
+        document.getElementById('updateUserForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const old_username = document.getElementById('updateUsernameOld').value;
+            const new_username = document.getElementById('updateUsernameNew').value;
+            const name = document.getElementById('updateName').value;
+            const password = document.getElementById('updatePassword').value;
+            const is_admin = document.getElementById('updateis_admin').value;
+            const data = { new_username, name, is_admin: parseInt(is_admin) };
+            if (password) {
+                data.password = password;
+            }
+            await axios.put(`/users/update/${old_username}`, data);
+            const modal = bootstrap.Modal.getInstance(document.getElementById('userUpdateModal'));
+            modal.hide();
+            fetchUsers();
+        });
+        // Update Ticket
+        document.getElementById('updateTicketForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            // ticket_id, event_title, ticket_price, fee, total_price, quantity, full_section, section, row_num
+            const ticket_id = document.getElementById('updateTicketID').value;
+            const event_title = document.getElementById('updateEventTitle').value;
+            const ticket_price = document.getElementById('updateTicketPrice').value;
+            const fee = document.getElementById('updateFee').value;
+            const total_price = document.getElementById('updateTotalPrice').value;
+            const quantity = document.getElementById('updateQuantity').value;
+            const full_section = document.getElementById('updateFullSection').value;
+            const section = document.getElementById('updateSection').value;
+            const row_num = document.getElementById('updateRowNum').value;
+            const data = { ticket_id, event_title, ticket_price, fee, total_price, quantity, full_section, section, row_num };
+            await axios.put(`/tickets/update/${ticket_id}`, data);
+            const modal = bootstrap.Modal.getInstance(document.getElementById('ticketUpdateModal'));
+            modal.hide();
+            fetchTickets();
+        });
+        // Update Events
+        document.getElementById('updateEventForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            // event_title, event_url, datetime_local, location_name, promoter_name
+            const old_event_title = document.getElementById('updateEventTitleOld').value;
+            const event_title = document.getElementById('updateEventTitleNew').value;
+            const event_url = document.getElementById('updateEventURL').value;
+            const datetime_local = document.getElementById('updateDatetimeLocal').value;
+            const location_name = document.getElementById('updateLocationName').value;
+            const promoter_name = document.getElementById('updatePromoterName').value;
+            const data = { event_title, event_url, datetime_local, location_name, promoter_name };
+            await axios.put(`/events/update/${old_event_title}`, data);
+            const modal = bootstrap.Modal.getInstance(document.getElementById('eventUpdateModal'));
+            modal.hide();
+            fetchEvents();
+        });
+
+        // Delete User
+        async function deleteUser(username) {
+            await axios.delete(`/users/delete/${username}`);
+            fetchUsers();
+        }
+        // Delete Ticket
+        async function deleteTicket(ticket_id) {
+            await axios.delete(`/tickets/delete/${ticket_id}`);
+            fetchTickets();
+        }
+        // Delete Event
+        async function deleteEvent(event_title) {
+            await axios.delete(`/events/delete/${event_title}`);
+            fetchEvents();
+        }
+
+        // Load users on page load
+        fetchUsers();
+        fetchTickets();
+        fetchEvents();
+    </script>
+</body>
+</html>
