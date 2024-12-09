@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tickets</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f9;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .filters {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .filters input {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .filters button {
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .filters button:hover {
+            background-color: #0056b3;
+        }
+        #tickets-container {
+            margin-top: 20px;
+        }
+        .price-group {
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .price-group h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #007bff;
+        }
+        .tickets-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        .ticket-card {
+            background-color: #f9f9f9;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            padding: 10px;
+            text-align: left;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        .ticket-card p {
+            margin: 5px 0;
+            font-size: 14px;
+            color: #555;
+        }
+        .ticket-card p span {
+            font-weight: bold;
+            color: #333;
+        }
+        .error-message {
+            color: red;
+            font-weight: bold;
+            text-align: center;
+        }
+    </style>
+    <script>
+        let allTickets = []; // Store tickets globally for sorting and filtering
+
+        async function fetchTickets() {
+            const eventTitle = document.getElementById('event-title').value;
+            const ticketsContainer = document.getElementById('tickets-container');
+            ticketsContainer.innerHTML = "<p>Loading tickets...</p>";
+
+            try {
+                const response = await fetch(`/tickets/${encodeURIComponent(eventTitle)}`);
+                if (!response.ok) {
+                    ticketsContainer.innerHTML = `<p class="error-message">Error: ${response.statusText}</p>`;
+                    return;
+                }
+
+                const tickets = await response.json();
+                if (tickets.message) {
+                    ticketsContainer.innerHTML = `<p class="error-message">${tickets.message}</p>`;
+                    return;
+                }
+
+                allTickets = tickets.sort((a, b) => parseFloat(a.total_price) - parseFloat(b.total_price)); // Sort by total price
+                renderTickets(allTickets);
+            } catch (error) {
+                ticketsContainer.innerHTML = `<p class="error-message">Error fetching tickets: ${error.message}</p>`;
+            }
+        }
+
+        function renderTickets(tickets) {
+            const ticketsContainer = document.getElementById('tickets-container');
+            ticketsContainer.innerHTML = ''; // Clear current content
+
+            if (tickets.length === 0) {
+                ticketsContainer.innerHTML = '<p>No tickets available for the selected criteria.</p>';
+                return;
+            }
+
+            // Group tickets by total_price
+            const groupedTickets = tickets.reduce((groups, ticket) => {
+                const price = parseFloat(ticket.total_price).toFixed(2);
+                if (!groups[price]) groups[price] = [];
+                groups[price].push(ticket);
+                return groups;
+            }, {});
+
+            // Render each group
+            Object.keys(groupedTickets).forEach(price => {
+                const group = groupedTickets[price];
+                let groupHTML = `
+                    <div class="price-group">
+                        <h2>Total Price: $${price}</h2>
+                        <div class="tickets-grid">
+                `;
+
+                group.forEach(ticket => {
+                    groupHTML += `
+                        <div class="ticket-card">
+                            <p><span>Section:</span> ${ticket.section || 'N/A'}</p>
+                            <p><span>Row:</span> ${ticket.row_num || 'N/A'}</p>
+                            <p><span>Quantity:</span> ${ticket.quantity}</p>
+                        </div>
+                    `;
+                });
+
+                groupHTML += '</div></div>';
+                ticketsContainer.innerHTML += groupHTML;
+            });
+        }
+
+        function applyFilters() {
+            const minPrice = parseFloat(document.getElementById('min-price').value) || 0;
+            const maxPrice = parseFloat(document.getElementById('max-price').value) || Infinity;
+
+            const filteredTickets = allTickets.filter(ticket => {
+                const totalPrice = parseFloat(ticket.total_price);
+                return totalPrice >= minPrice && totalPrice <= maxPrice;
+            });
+
+            renderTickets(filteredTickets);
+        }
+
+        window.onload = fetchTickets;
+    </script>
+</head>
+<body>
+    <h1>Tickets for "{{ event_title }}"</h1>
+    <input type="hidden" id="event-title" value="{{ event_title }}">
+
+    <div class="filters">
+        <input type="number" id="min-price" placeholder="Min Price">
+        <input type="number" id="max-price" placeholder="Max Price">
+        <button onclick="applyFilters()">Apply Filters</button>
+    </div>
+
+    <div id="tickets-container"></div>
+</body>
+</html>

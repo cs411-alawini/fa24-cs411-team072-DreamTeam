@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Wishlist</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            margin: 0;
+        }
+        .logout-btn {
+            padding: 10px;
+            background-color: red;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .wishlist-item {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+        .wishlist-title {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .wishlist-details {
+            margin: 5px 0;
+        }
+        .remove-btn {
+            padding: 5px 10px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .remove-btn:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>My Wishlist</h1>
+        <form action="/logout" method="GET">
+            <button class="logout-btn">Logout</button>
+        </form>
+    </div>
+
+    <div id="wishlist-container">
+        <!-- Wishlist events will be populated here -->
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const wishlistContainer = document.getElementById('wishlist-container');
+
+            // Fetch wishlist events
+            fetch('http://127.0.0.1:5000/wishlist')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(wishlist => {
+                    renderWishlist(wishlist);
+                })
+                .catch(error => {
+                    console.error('Error fetching wishlist:', error);
+                    wishlistContainer.innerHTML = '<p>Error loading wishlist. Please try again later.</p>';
+                });
+        });
+
+        function renderWishlist(wishlist) {
+            const wishlistContainer = document.getElementById('wishlist-container');
+            wishlistContainer.innerHTML = ''; // Clear existing wishlist
+
+            if (wishlist.length === 0) {
+                wishlistContainer.innerHTML = '<p>No events in your wishlist.</p>';
+                return;
+            }
+
+            wishlist.forEach(event => {
+                const wishlistDiv = document.createElement('div');
+                wishlistDiv.classList.add('wishlist-item');
+
+                wishlistDiv.innerHTML = `
+                    <p class="wishlist-title">${event.event_title}</p>
+                    <p class="wishlist-details">Date & Time: ${event.datetime_local}</p>
+                    <p class="wishlist-details">Location: ${event.location_name}</p>
+                    <p class="wishlist-details">Promoter: ${event.promoter_name}</p>
+                    <button class="remove-btn" data-event-title="${event.event_title}">Remove</button>
+                `;
+
+                wishlistContainer.appendChild(wishlistDiv);
+            });
+
+            // Attach event listeners to remove buttons
+            document.querySelectorAll('.remove-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    const eventTitle = button.getAttribute('data-event-title');
+                    removeFromWishlist(eventTitle);
+                });
+            });
+        }
+
+        function removeFromWishlist(eventTitle) {
+            fetch('http://127.0.0.1:5000/wishlist', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ event_title: eventTitle }),
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(data => {
+                            throw new Error(data.error || 'Failed to remove from wishlist');
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    alert(data.message || 'Event removed from wishlist successfully');
+                    // Reload the wishlist after removing the event
+                    return fetch('http://127.0.0.1:5000/wishlist');
+                })
+                .then(response => response.json())
+                .then(updatedWishlist => {
+                    renderWishlist(updatedWishlist);
+                })
+                .catch(error => {
+                    console.error('Error removing from wishlist:', error);
+                    alert('Failed to remove event from wishlist. Please try again later.');
+                });
+        }
+    </script>
+</body>
+</html>
